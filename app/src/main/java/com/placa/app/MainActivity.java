@@ -8,12 +8,14 @@ import android.app.DownloadManager;
 import android.os.Environment;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.ImageView;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
@@ -51,15 +53,39 @@ public class MainActivity extends Activity {
         pantallaCarga = new LinearLayout(this);
         pantallaCarga.setOrientation(LinearLayout.VERTICAL);
         pantallaCarga.setGravity(Gravity.CENTER);
-        pantallaCarga.setBackgroundColor(Color.WHITE);
-        pantallaCarga.setPadding(40, 40, 40, 40);
+        pantallaCarga.setPadding(50, 50, 50, 50);
+
+        GradientDrawable fondo = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{
+                        Color.rgb(245, 238, 255),
+                        Color.rgb(255, 255, 255),
+                        Color.rgb(232, 214, 255)
+                }
+        );
+        pantallaCarga.setBackground(fondo);
+
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(getResources().getIdentifier("logo_placa", "drawable", getPackageName()));
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(190, 190);
+        logoParams.setMargins(0, 0, 0, 20);
+        logo.setLayoutParams(logoParams);
+        logo.setAdjustViewBounds(true);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         TextView titulo = new TextView(this);
         titulo.setText("PLACA");
-        titulo.setTextSize(34);
+        titulo.setTextSize(38);
         titulo.setTypeface(Typeface.DEFAULT_BOLD);
         titulo.setTextColor(Color.rgb(98, 0, 238));
         titulo.setGravity(Gravity.CENTER);
+
+        TextView subtitulo = new TextView(this);
+        subtitulo.setText("Plataforma de Aprendizaje y Calificaciones");
+        subtitulo.setTextSize(16);
+        subtitulo.setTextColor(Color.rgb(90, 80, 110));
+        subtitulo.setGravity(Gravity.CENTER);
+        subtitulo.setPadding(0, 8, 0, 35);
 
         ProgressBar progreso = new ProgressBar(this);
         progreso.setIndeterminate(true);
@@ -67,19 +93,22 @@ public class MainActivity extends Activity {
 
         TextView mensaje = new TextView(this);
         mensaje.setText("Cargando sistema académico...");
-        mensaje.setTextSize(16);
-        mensaje.setTextColor(Color.rgb(60, 60, 60));
+        mensaje.setTextSize(17);
+        mensaje.setTypeface(Typeface.DEFAULT_BOLD);
+        mensaje.setTextColor(Color.rgb(50, 50, 50));
         mensaje.setGravity(Gravity.CENTER);
         mensaje.setPadding(0, 30, 0, 0);
 
         TextView submensaje = new TextView(this);
         submensaje.setText("Preparando información de PLACA");
         submensaje.setTextSize(14);
-        submensaje.setTextColor(Color.rgb(120, 120, 120));
+        submensaje.setTextColor(Color.rgb(110, 110, 110));
         submensaje.setGravity(Gravity.CENTER);
         submensaje.setPadding(0, 10, 0, 0);
 
+        pantallaCarga.addView(logo);
         pantallaCarga.addView(titulo);
+        pantallaCarga.addView(subtitulo);
         pantallaCarga.addView(progreso);
         pantallaCarga.addView(mensaje);
         pantallaCarga.addView(submensaje);
