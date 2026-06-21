@@ -17,6 +17,7 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         WebSettings ws = webView.getSettings();
+
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
         ws.setAllowFileAccess(true);
