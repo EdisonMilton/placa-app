@@ -4,18 +4,20 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.content.Intent;
 import android.net.Uri;
-
+import android.app.DownloadManager;
+import android.os.Environment;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
 import android.webkit.ValueCallback;
 import android.webkit.CookieManager;
+import android.webkit.URLUtil;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
     WebView webView;
-
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_REQUEST = 100;
 
@@ -27,7 +29,6 @@ public class MainActivity extends Activity {
         setContentView(webView);
 
         WebSettings ws = webView.getSettings();
-
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
         ws.setDatabaseEnabled(true);
@@ -38,30 +39,25 @@ public class MainActivity extends Activity {
         ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance()
-                .setAcceptThirdPartyCookies(webView, true);
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
-
-        // navegación dentro de la app
         webView.setWebViewClient(new WebViewClient());
 
-
-        // permite subir archivos
-        webView.setWebChromeClient(new WebChromeClient(){
-
+        webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public boolean onShowFileChooser(
                     WebView webView,
-                    ValueCallback<Uri[]> filePathCallback,
-                    FileChooserParams fileChooserParams) {
+                    ValueCallback<Uri[]> callback,
+                    FileChooserParams params) {
 
-                MainActivity.this.filePathCallback = filePathCallback;
-
-                Intent intent = fileChooserParams.createIntent();
+                filePathCallback = callback;
 
                 try {
+                    Intent intent = params.createIntent();
                     startActivityForResult(intent, FILE_REQUEST);
                 } catch (Exception e) {
+                    filePathCallback = null;
+                    Toast.makeText(MainActivity.this, "No se pudo abrir el selector de archivos", Toast.LENGTH_SHORT).show();
                     return false;
                 }
 
@@ -69,46 +65,57 @@ public class MainActivity extends Activity {
             }
         });
 
+        webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> {
+            try {
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-        // mantener presionado para actualizar
-        webView.setOnLongClickListener(v -> {
-            webView.reload();
-            return true;
+                String cookies = CookieManager.getInstance().getCookie(url);
+                request.addRequestHeader("Cookie", cookies);
+                request.addRequestHeader("User-Agent", userAgent);
+
+                String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+
+                request.setTitle(fileName);
+                request.setDescription("Descargando archivo de PLACA...");
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+
+                DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                dm.enqueue(request);
+
+                Toast.makeText(this, "Descarga iniciada", Toast.LENGTH_SHORT).show();
+
+            } catch (Exception e) {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+            }
         });
 
+        webView.setOnLongClickListener(v -> {
+            webView.reload();
+            Toast.makeText(this, "Actualizando PLACA...", Toast.LENGTH_SHORT).show();
+            return true;
+        });
 
         webView.loadUrl("https://placa.algoritmo.xyz");
     }
 
-
     @Override
-    protected void onActivityResult(
-            int requestCode,
-            int resultCode,
-            Intent data) {
-
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == FILE_REQUEST){
-
-            if(filePathCallback != null){
-
-                Uri[] result = WebChromeClient.FileChooserParams
-                        .parseResult(resultCode, data);
-
-                filePathCallback.onReceiveValue(result);
-                filePathCallback = null;
-            }
+        if (requestCode == FILE_REQUEST && filePathCallback != null) {
+            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            filePathCallback.onReceiveValue(result);
+            filePathCallback = null;
         }
     }
 
-
     @Override
     public void onBackPressed() {
-
-        if(webView.canGoBack()){
+        if (webView != null && webView.canGoBack()) {
             webView.goBack();
-        }else{
+        } else {
             super.onBackPressed();
         }
     }
