@@ -1,6 +1,7 @@
 package com.placa.app;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.content.Intent;
 import android.net.Uri;
@@ -15,9 +16,14 @@ import android.webkit.CookieManager;
 import android.webkit.URLUtil;
 import android.widget.Toast;
 
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 public class MainActivity extends Activity {
 
     WebView webView;
+    SwipeRefreshLayout swipeRefreshLayout;
+    ProgressDialog cargando;
+
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_REQUEST = 100;
 
@@ -25,8 +31,16 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        swipeRefreshLayout = new SwipeRefreshLayout(this);
         webView = new WebView(this);
-        setContentView(webView);
+
+        swipeRefreshLayout.addView(webView);
+        setContentView(swipeRefreshLayout);
+
+        cargando = new ProgressDialog(this);
+        cargando.setMessage("Cargando PLACA...");
+        cargando.setCancelable(false);
+        cargando.show();
 
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
@@ -41,7 +55,24 @@ public class MainActivity extends Activity {
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                swipeRefreshLayout.setRefreshing(true);
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                swipeRefreshLayout.setRefreshing(false);
+
+                if (cargando != null && cargando.isShowing()) {
+                    cargando.dismiss();
+                }
+
+                super.onPageFinished(view, url);
+            }
+        });
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -91,11 +122,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.setOnLongClickListener(v -> {
-            webView.reload();
-            Toast.makeText(this, "Actualizando PLACA...", Toast.LENGTH_SHORT).show();
-            return true;
-        });
+        swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
 
         webView.loadUrl("https://placa.algoritmo.xyz");
     }
