@@ -1,12 +1,19 @@
 package com.placa.app;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.content.Intent;
 import android.net.Uri;
 import android.app.DownloadManager;
 import android.os.Environment;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
@@ -22,7 +29,7 @@ public class MainActivity extends Activity {
 
     WebView webView;
     SwipeRefreshLayout swipeRefreshLayout;
-    ProgressDialog cargando;
+    LinearLayout pantallaCarga;
 
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_REQUEST = 100;
@@ -31,16 +38,54 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FrameLayout contenedor = new FrameLayout(this);
+
         swipeRefreshLayout = new SwipeRefreshLayout(this);
         webView = new WebView(this);
 
         swipeRefreshLayout.addView(webView);
-        setContentView(swipeRefreshLayout);
+        swipeRefreshLayout.setColorSchemeColors(Color.rgb(98, 0, 238));
 
-        cargando = new ProgressDialog(this);
-        cargando.setMessage("Cargando PLACA...");
-        cargando.setCancelable(false);
-        cargando.show();
+        contenedor.addView(swipeRefreshLayout);
+
+        pantallaCarga = new LinearLayout(this);
+        pantallaCarga.setOrientation(LinearLayout.VERTICAL);
+        pantallaCarga.setGravity(Gravity.CENTER);
+        pantallaCarga.setBackgroundColor(Color.WHITE);
+        pantallaCarga.setPadding(40, 40, 40, 40);
+
+        TextView titulo = new TextView(this);
+        titulo.setText("PLACA");
+        titulo.setTextSize(34);
+        titulo.setTypeface(Typeface.DEFAULT_BOLD);
+        titulo.setTextColor(Color.rgb(98, 0, 238));
+        titulo.setGravity(Gravity.CENTER);
+
+        ProgressBar progreso = new ProgressBar(this);
+        progreso.setIndeterminate(true);
+        progreso.getIndeterminateDrawable().setTint(Color.rgb(98, 0, 238));
+
+        TextView mensaje = new TextView(this);
+        mensaje.setText("Cargando sistema académico...");
+        mensaje.setTextSize(16);
+        mensaje.setTextColor(Color.rgb(60, 60, 60));
+        mensaje.setGravity(Gravity.CENTER);
+        mensaje.setPadding(0, 30, 0, 0);
+
+        TextView submensaje = new TextView(this);
+        submensaje.setText("Preparando información de PLACA");
+        submensaje.setTextSize(14);
+        submensaje.setTextColor(Color.rgb(120, 120, 120));
+        submensaje.setGravity(Gravity.CENTER);
+        submensaje.setPadding(0, 10, 0, 0);
+
+        pantallaCarga.addView(titulo);
+        pantallaCarga.addView(progreso);
+        pantallaCarga.addView(mensaje);
+        pantallaCarga.addView(submensaje);
+
+        contenedor.addView(pantallaCarga);
+        setContentView(contenedor);
 
         WebSettings ws = webView.getSettings();
         ws.setJavaScriptEnabled(true);
@@ -59,17 +104,14 @@ public class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 swipeRefreshLayout.setRefreshing(true);
+                pantallaCarga.setVisibility(View.VISIBLE);
                 super.onPageStarted(view, url, favicon);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 swipeRefreshLayout.setRefreshing(false);
-
-                if (cargando != null && cargando.isShowing()) {
-                    cargando.dismiss();
-                }
-
+                pantallaCarga.setVisibility(View.GONE);
                 super.onPageFinished(view, url);
             }
         });
