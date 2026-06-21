@@ -2,6 +2,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Para descargas en versiones antiguas de Android -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:theme="@style/AppTheme"
         android:label="PLACA"
