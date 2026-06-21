@@ -4,16 +4,20 @@
 
     <application
         android:theme="@style/AppTheme"
-        android:label="PLACA">
+        android:label="PLACA"
+        android:icon="@drawable/logo_placa"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".MainActivity"
             android:exported="true">
 
             <intent-filter>
+
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
 
         </activity>
