@@ -22,17 +22,32 @@ public class MainActivity extends Activity {
 
         ws.setJavaScriptEnabled(true);
         ws.setDomStorageEnabled(true);
+        ws.setDatabaseEnabled(true);
         ws.setAllowFileAccess(true);
         ws.setAllowContentAccess(true);
-        ws.setDatabaseEnabled(true);
+        ws.setLoadWithOverviewMode(true);
+        ws.setUseWideViewPort(true);
+        ws.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
-        // Mantener sesión
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
 
-        // Abrir todo dentro de la app
         webView.setWebViewClient(new WebViewClient());
 
+        webView.setOnLongClickListener(v -> {
+            webView.reload();
+            return true;
+        });
+
         webView.loadUrl("https://placa.algoritmo.xyz");
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }
